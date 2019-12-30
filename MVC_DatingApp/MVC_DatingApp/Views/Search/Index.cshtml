@@ -1,0 +1,33 @@
+﻿@model IEnumerable<DataLibrary.Models.UserSignUpModel>
+@using DataLibrary.Models;
+
+<div class="row">
+    <div class="col-md-12">
+        <h1>User Search: </h1>
+        <input type="text" class="form-control" id="SearchTextField" placeholder="Search" />
+        <br />
+        @foreach (var item in Model)
+        {
+            <div class="media" id="SearchId-@item.Id">
+                <a href="@Url.Action("Index", "User", new { id = item.Id })" class="card-link">
+                    <img class="mr-1" src="@Url.Action("RenderImage", "User", new { id = item.Id })" height="32" width="32" />
+                    <span class="FirstNLastname">@item.FirstName @item.LastName</span>
+                </a>
+
+                @foreach (var request in ViewBag.ListOfRequests as ICollection<RequestModel>)
+                {
+                    if (item.Id.Equals(request.RequestFromId))
+                    {
+                        <button class="btn btn-success ReqBtnsAccept" data-id="@request.Id">Accept</button>
+                        <button class="btn btn-danger ReqBtnsDecline" data-id="@request.Id">Decline</button>
+                    }
+                }
+            </div>
+        }
+    </div>
+</div>
+@section Scripts{
+    <script src="~/Scripts/customScripts/Search.js"></script>
+    <script src="~/Scripts/customScripts/FriendRequests.js"></script>
+
+}

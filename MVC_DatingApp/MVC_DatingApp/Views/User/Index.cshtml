@@ -1,0 +1,213 @@
+﻿@model DataLibrary.Models.UserSignUpModel
+@using DataLibrary.Models;
+@using Microsoft.AspNet.Identity;
+
+@{ 
+    string currentUser = User.Identity.GetUserId();
+}
+
+<div class="row" id="ProfileDiv">
+    <div class="col-md-4">
+        <img src="@Url.Action("RenderImage", "User", new { userId = ViewBag.ProfileId })" id="Image" />
+        <br /><strong>Name</strong><br />
+        @Html.DisplayFor((m) => m.FirstName) @Html.DisplayFor((m) => m.LastName)
+        <br />
+        @if (Request.IsAuthenticated && currentUser.Equals(Model.Id)) {
+            <div class="form-group">
+                <button type="button" id="btnEdit">Simple Edit</button>
+            </div>
+
+            <div class="form-group">
+                @Html.ActionLink("Manage Profile", "ChangeProfileData", "User", new { area = "" }, new { @class = "btn btn-info changeBtn" })
+            </div>
+
+        }
+
+        @if (Model.Id != ViewBag.CurrentUserId) {
+            if (ViewBag.Friendship == false) {
+                if (ViewBag.Request == false) {
+                    <div class="Req-btns" id="RequestFalse">
+                        <button type="button" id="SendReqBtn">Send Request</button>
+                    </div>
+                } else {
+                    <div class="Req-btns" id="RequestTrue">
+                        <button type="button" id="CancelReqBtn">Cancel Request</button>
+                    </div>
+                }
+            }
+        }
+
+    </div>
+
+
+
+    <div class="container col-md-4" id="postWall">
+
+        @{Html.RenderAction("CreatePost", "Post", new { id = Model.Id });}  
+        
+        @{Html.RenderAction("CreatedPosts", "Post", new { id = Model.Id });}
+
+    </div>
+    <div class="container col-md-4" id="friendsList">
+        <h4>Friendlist</h4>
+        @if (ViewBag.HasFriends == true)
+        {
+            foreach (var friendship in ViewBag.AllFriends as ICollection<FriendListModel>)
+            {
+                if (ViewBag.ProfileId.Equals(friendship.FriendIds.Id))
+                {
+                    <a href="@Url.Action("Index", "User", new { id = friendship.UserIds.Id })" class="card-link">
+                        <img class="mr-1" src="@Url.Action("RenderImage", "User", new { id = friendship.UserIds.Id })" height="32" width="32" />
+                        <span class="FirstNLastname">@friendship.UserIds.FirstName @friendship.UserIds.LastName</span>
+                    </a>
+                    <br/>
+                }
+                else
+                {
+                    <a href="@Url.Action("Index", "User", new { id = friendship.FriendIds.Id })" class="card-link">
+                        <img class="mr-1" src="@Url.Action("RenderImage", "User", new { id = friendship.FriendIds.Id })" height="32" width="32" />
+                        <span class="FirstNLastname">@friendship.FriendIds.FirstName @friendship.FriendIds.LastName</span>
+                    </a>
+                    <br/>
+                }
+            }
+        }
+    </div>
+</div>
+
+<div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Edit Profile</h4>
+            </div>
+            <div class="modal-body">
+                <form class=" col-md-offset-1 form-horizontal">
+                    <input type="hidden" id="Id" value="0" />
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" id="txtFirstName" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" id="txtLastName" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label>Birth</label>
+                        <div class="input-group date" data-provide="datepicker" id="btnDate">
+                            <input type="text" id="txtDate" class="form-control" />
+                            <div class="input-group-addon">
+                                <span class="glyhicon glyphicon-th"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" id="btnSave" class="btn btn-success">Save</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/Scripts/customScripts/FriendRequests.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.12.0/moment.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+
+            FetchProfileInfo();
+            function FetchProfileInfo() {
+                var events = [];
+                $.ajax({
+                    url: '/User/GetProfils',
+                    type: "GET",
+                    datatype: "JSON",
+                    success: function (data) {
+                        var events = [];
+
+                        $.each(data, function (i, v) {
+
+                            events.push({
+                                Id: v.Id,
+                                FirstName: v.FirstName,
+                                LastName: v.LastName,
+                                BirthDate: v.BirthDate,
+                                //Image: v.Image
+                            });
+                        })
+
+                    },
+
+                    error: function (error) {
+                        alert('failed');
+                    }
+                })
+            }
+
+            $('#btnEdit').click(function () {
+                $('#myModal').modal('show');
+            });
+
+            $('#btnDate').datetimepicker({
+                format: 'DD/MM/YYYY'
+            });
+
+            $('#btnSave').click(function () {
+                jQuery.noConflict();
+                //validation
+                if ($('#txtFirstName').val().trim() == "") {
+                    alert('First Name required');
+                    return;
+                }
+
+                if ($('#txtLastName').val().trim() == "") {
+                    alert('Last Name required');
+                    return;
+                }
+
+                if ($('#txtDate').val().trim() == "") {
+                    alert('Date required');
+                    return;
+                }
+
+                var data = {
+                    Id: $('#Id').val(),
+                    FirstName: $('#txtFirstName').val().trim(),
+                    LastName: $('#txtLastName').val().trim(),
+                    BirthDate: $('#txtDate').val().trim(),
+                    //Image: $('#Img').val().trim()
+
+                }
+
+                SaveProfile(data)
+            })
+
+
+            function SaveProfile(data) {
+                jQuery.noConflict();
+                $.ajax({
+                    type: "POST",
+                    url: '/User/SaveProfileInfo',
+                    data: data,
+                    success: function (data) {
+                        if (data.status) {
+                            FetchProfileInfo();
+                            $('#myModal').hide();
+                        }
+                    },
+                    error: function () {
+                        alert('Failed');
+                    }
+                    ,
+                })
+            }
+
+        })
+    </script>
+}
+

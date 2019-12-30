@@ -1,0 +1,22 @@
+﻿@model MVC_DatingApp.Models.PostViewModels
+@{
+    ViewBag.Title = "Index";
+}
+<div class="container">
+        @Html.AntiForgeryToken()
+        <div class= "bg-light mb-3" id="CreatePostCard">
+            <div class="card-header">
+                <h4><span class="card-title">Create Post</span></h4>
+            </div>
+            <div class="card-body">
+                @Html.EditorFor(model => model.Message, new { id= "PostMessage", htmlAttributes = new { @class = "form-control card-text", @placeholder = "What's on your mind?", @id = "PostMessage" } })
+            </div>
+            <footer class="card-footer">
+                <span class="btn btn-primary" id="SubmitPost"> Submit Post </span>
+            </footer>
+        </div>
+</div>
+@section Scripts{
+    <script src="~/Scripts/customScripts/wall-posts.js"></script>
+}
+

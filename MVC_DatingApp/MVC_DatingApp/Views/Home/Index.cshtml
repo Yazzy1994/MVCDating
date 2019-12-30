@@ -1,0 +1,31 @@
+﻿@model IEnumerable<DataLibrary.Models.UserSignUpModel>
+<link href="https://fonts.googleapis.com/css?family=Indie+Flower" rel="stylesheet">
+@{
+    ViewBag.Title = "Home Page";
+    int i = 0;
+}
+
+<div class="jumbotron">
+    <img src="https://i.imgur.com/L1v87Wn.png" />
+    <hr />
+    <p class="lead">Fetaste Bloggen is a matchmaking and personal introduction blogg for singel Homo Sapiens!</p>
+    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+</div>
+
+<div class="row">
+
+    @foreach (var item in Model) {
+        if (i < 3) {
+            <div class="col-md-4" i++>
+                <a href="@Url.Action("Index", "User", new { id = item.Id })" class="card-link">
+                    <img class="mr-1" src="@Url.Action("RenderImage", "User", new { id = item.Id })" height="52" width="52" />
+                    <span class="badge badge-light personal-info">@item.FirstName @item.LastName</span>
+                </a>
+
+            </div>
+        } else {
+            break;
+        }
+        i++;
+    }
+</div>
